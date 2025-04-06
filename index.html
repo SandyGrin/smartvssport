@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Опрос о времени со смартфоном</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: #e5e7eb;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background-color: #4f46e5;
+            transition: width 0.5s ease-in-out;
+        }
+        
+        .option-card {
+            transition: all 0.3s ease;
+        }
+        
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .option-card.selected {
+            border-color: #4f46e5;
+            background-color: #f5f3ff;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans">
+    <!-- Главная страница с опросом -->
+    <div id="survey-page" class="container mx-auto px-4 py-12 max-w-3xl">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-8 md:p-10">
+            <div class="text-center mb-8">
+                <div class="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <i class="fas fa-mobile-screen text-indigo-600 text-3xl"></i>
+                </div>
+                <h1 class="text-3xl font-bold text-gray-800 mb-2">Сколько времени вы проводите со смартфоном?</h1>
+                <p class="text-gray-600">Помогите нам понять ваши цифровые привычки</p>
+            </div>
+            
+            <div class="space-y-4 mb-8">
+                <div class="option-card bg-white border-2 border-gray-200 rounded-lg p-6 cursor-pointer transition-all duration-300"
+                     onclick="selectOption(1)">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mr-4">
+                            <span class="text-blue-600 font-medium">1</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">10-20 минут</h3>
+                            <p class="text-sm text-gray-500">Минимальное использование</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-card bg-white border-2 border-gray-200 rounded-lg p-6 cursor-pointer transition-all duration-300"
+                     onclick="selectOption(2)">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mr-4">
+                            <span class="text-purple-600 font-medium">2</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">30-60 минут</h3>
+                            <p class="text-sm text-gray-500">Умеренное использование</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="option-card bg-white border-2 border-gray-200 rounded-lg p-6 cursor-pointer transition-all duration-300"
+                     onclick="selectOption(3)">
+                    <div class="flex items-center">
+                        <div class="w-10 h-10 rounded-full bg-pink-100 flex items-center justify-center mr-4">
+                            <span class="text-pink-600 font-medium">3</span>
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-800">90-120 минут</h3>
+                            <p class="text-sm text-gray-500">Активное использование</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="submit-btn" onclick="submitSurvey()" 
+                    class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-6 rounded-lg transition duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled>
+                Отправить ответ
+            </button>
+        </div>
+    </div>
+    
+    <!-- Страница благодарности -->
+    <div id="thank-you-page" class="hidden container mx-auto px-4 py-12 max-w-3xl">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-8 md:p-10 text-center">
+            <div class="w-24 h-24 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-check-circle text-green-600 text-4xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-4">Спасибо за ваш ответ!</h1>
+            <p class="text-gray-600 mb-8">Ваше мнение очень важно для нас. Теперь вы можете посмотреть статистику ответов.</p>
+            
+            <div class="flex justify-center space-x-4">
+                <button onclick="showSurveyPage()" 
+                        class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium py-2 px-6 rounded-lg transition duration-300">
+                    <i class="fas fa-arrow-left mr-2"></i> Вернуться
+                </button>
+                <button onclick="showResultsPage()" 
+                        class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-6 rounded-lg transition duration-300">
+                    Посмотреть результаты <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Страница результатов -->
+    <div id="results-page" class="hidden container mx-auto px-4 py-12 max-w-3xl">
+        <div class="bg-white rounded-xl shadow-md overflow-hidden p-8 md:p-10">
+            <div class="flex items-center mb-8">
+                <button onclick="showThankYouPage()" 
+                        class="mr-4 text-gray-500 hover:text-gray-700 transition duration-300">
+                    <i class="fas fa-arrow-left text-xl"></i>
+                </button>
+                <h1 class="text-2xl font-bold text-gray-800">Результаты опроса</h1>
+            </div>
+            
+            <div class="mb-8">
+                <h2 class="text-lg font-medium text-gray-800 mb-4">Сколько времени вы проводите со смартфоном?</h2>
+                <p class="text-gray-500 mb-6">Всего ответов: <span id="total-responses" class="font-medium">0</span></p>
+                
+                <div class="space-y-6">
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium text-gray-700">10-20 минут</span>
+                            <span id="option1-percent" class="font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="option1-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="text-right mt-1 text-sm text-gray-500">
+                            <span id="option1-count">0</span> голосов
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium text-gray-700">30-60 минут</span>
+                            <span id="option2-percent" class="font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="option2-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="text-right mt-1 text-sm text-gray-500">
+                            <span id="option2-count">0</span> голосов
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <div class="flex justify-between mb-2">
+                            <span class="font-medium text-gray-700">90-120 минут</span>
+                            <span id="option3-percent" class="font-medium text-indigo-600">0%</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div id="option3-bar" class="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="text-right mt-1 text-sm text-gray-500">
+                            <span id="option3-count">0</span> голосов
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-blue-50 rounded-lg p-6">
+                <h3 class="font-medium text-blue-800 mb-3 flex items-center">
+                    <i class="fas fa-info-circle mr-2"></i> Интересный факт
+                </h3>
+                <p class="text-blue-700" id="fun-fact">
+                    Среднестатистический пользователь проводит со смартфоном около 3-4 часов в день.
+                </p>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Хранение данных опроса в localStorage
+        if (!localStorage.getItem('surveyData')) {
+            localStorage.setItem('surveyData', JSON.stringify({
+                option1: 0,
+                option2: 0,
+                option3: 0
+            }));
+        }
+        
+        let selectedOption = null;
+        
+        // Выбор варианта ответа
+        function selectOption(option) {
+            selectedOption = option;
+            document.getElementById('submit-btn').disabled = false;
+            
+            // Удаляем класс selected у всех карточек
+            document.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+                card.classList.remove('border-indigo-500');
+                card.querySelector('div:first-child').classList.remove('bg-indigo-100');
+            });
+            
+            // Добавляем класс selected к выбранной карточке
+            const selectedCard = document.querySelectorAll('.option-card')[option-1];
+            selectedCard.classList.add('selected', 'border-indigo-500');
+            selectedCard.querySelector('div:first-child').classList.add('bg-indigo-100');
+        }
+        
+        // Отправка опроса
+        function submitSurvey() {
+            if (!selectedOption) return;
+            
+            // Сохраняем ответ
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+            surveyData[`option${selectedOption}`]++;
+            localStorage.setItem('surveyData', JSON.stringify(surveyData));
+            
+            // Показываем страницу благодарности
+            showThankYouPage();
+        }
+        
+        // Показать страницу опроса
+        function showSurveyPage() {
+            document.getElementById('survey-page').classList.remove('hidden');
+            document.getElementById('thank-you-page').classList.add('hidden');
+            document.getElementById('results-page').classList.add('hidden');
+        }
+        
+        // Показать страницу благодарности
+        function showThankYouPage() {
+            document.getElementById('survey-page').classList.add('hidden');
+            document.getElementById('thank-you-page').classList.remove('hidden');
+            document.getElementById('results-page').classList.add('hidden');
+            
+            // Анимация появления
+            document.getElementById('thank-you-page').classList.add('fade-in');
+            setTimeout(() => {
+                document.getElementById('thank-you-page').classList.remove('fade-in');
+            }, 500);
+        }
+        
+        // Показать страницу результатов
+        function showResultsPage() {
+            document.getElementById('survey-page').classList.add('hidden');
+            document.getElementById('thank-you-page').classList.add('hidden');
+            document.getElementById('results-page').classList.remove('hidden');
+            
+            // Загружаем и отображаем результаты
+            updateResults();
+            
+            // Анимация появления
+            document.getElementById('results-page').classList.add('fade-in');
+            setTimeout(() => {
+                document.getElementById('results-page').classList.remove('fade-in');
+            }, 500);
+        }
+        
+        // Обновление результатов
+        function updateResults() {
+            const surveyData = JSON.parse(localStorage.getItem('surveyData'));
+            const total = surveyData.option1 + surveyData.option2 + surveyData.option3;
+            
+            document.getElementById('total-responses').textContent = total;
+            
+            // Обновляем данные для каждого варианта
+            updateOptionResults(1, surveyData.option1, total);
+            updateOptionResults(2, surveyData.option2, total);
+            updateOptionResults(3, surveyData.option3, total);
+            
+            // Обновляем интересный факт
+            updateFunFact(surveyData);
+        }
+        
+        // Обновление данных для конкретного варианта
+        function updateOptionResults(optionNum, count, total) {
+            const percent = total > 0 ? Math.round((count / total) * 100) : 0;
+            
+            document.getElementById(`option${optionNum}-count`).textContent = count;
+            document.getElementById(`option${optionNum}-percent`).textContent = `${percent}%`;
+            document.getElementById(`option${optionNum}-bar`).style.width = `${percent}%`;
+        }
+        
+        // Обновление интересного факта на основе результатов
+        function updateFunFact(data) {
+            const total = data.option1 + data.option2 + data.option3;
+            const factElement = document.getElementById('fun-fact');
+            
+            if (total === 0) {
+                factElement.textContent = "Пока недостаточно данных для анализа.";
+                return;
+            }
+            
+            const maxOption = Math.max(data.option1, data.option2, data.option3);
+            
+            if (maxOption === data.option1) {
+                factElement.textContent = "Большинство пользователей проводят со смартфоном менее 20 минут в день. Это отличный показатель цифрового баланса!";
+            } else if (maxOption === data.option2) {
+                factElement.textContent = "Среднее время использования смартфона среди участников опроса - около часа в день. Это соответствует рекомендациям психологов.";
+            } else {
+                factElement.textContent = "Значительная часть пользователей проводит со смартфоном более 1.5 часов в день. Возможно, стоит задуматься о цифровом детоксе.";
+            }
+        }
+    </script>
+</body>
+</html>
