@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Опрос: Использование смартфона</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Shared styles - could also be in a separate poll.css */
+        .option-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .option-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        .option-card.selected {
+            border-color: #4f46e5; /* indigo-600 */
+            background-color: #eef2ff; /* indigo-50 */
+        }
+        body { background-color: #f9fafb; /* bg-gray-50 */ }
+    </style>
+</head>
+<body class="min-h-screen font-sans">
+    <!-- Опрос -->
+    <div id="poll-container" class="max-w-2xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+        <div class="text-center mb-12">
+            <div class="mx-auto h-16 w-16 bg-indigo-100 rounded-full flex items-center justify-center mb-4">
+                <i class="fas fa-mobile-screen text-indigo-600 text-2xl"></i>
+            </div>
+            <h1 class="text-3xl font-bold text-gray-900 mb-2">Как долго вы используете смартфон?</h1>
+            <p class="text-lg text-gray-600">Выберите один вариант ответа</p>
+        </div>
+
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="p-6">
+                <div class="space-y-4" id="options-list">
+                    <!-- Option cards will be generated here or listed manually -->
+                     <div class="option-card border-2 border-gray-200 rounded-lg p-5" onclick="selectOption(1, this)">
+                         <div class="flex items-center">
+                             <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                                 <i class="fas fa-hourglass-start text-indigo-600"></i>
+                             </div>
+                             <div>
+                                 <h3 class="text-lg font-medium text-gray-900">Менее 1 часа</h3>
+                                 <p class="text-sm text-gray-500">Редко пользуюсь смартфоном в течение дня</p>
+                             </div>
+                         </div>
+                     </div>
+                    <div class="option-card border-2 border-gray-200 rounded-lg p-5" onclick="selectOption(2, this)">
+                        <div class="flex items-center">
+                             <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-clock text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">1–2 часа</h3>
+                                <p class="text-sm text-gray-500">Использую смартфон эпизодически</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="option-card border-2 border-gray-200 rounded-lg p-5" onclick="selectOption(3, this)">
+                        <div class="flex items-center">
+                             <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-mobile text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">2–4 часа</h3>
+                                <p class="text-sm text-gray-500">Регулярно пользуюсь в течение дня</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="option-card border-2 border-gray-200 rounded-lg p-5" onclick="selectOption(4, this)">
+                        <div class="flex items-center">
+                             <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-comment-dots text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">4–6 часов</h3>
+                                <p class="text-sm text-gray-500">Активно использую для общения и развлечений</p>
+                            </div>
+                        </div>
+                    </div>
+                     <div class="option-card border-2 border-gray-200 rounded-lg p-5" onclick="selectOption(5, this)">
+                        <div class="flex items-center">
+                             <div class="flex-shrink-0 h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center mr-4">
+                                <i class="fas fa-head-side-headphones text-indigo-600"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-medium text-gray-900">Более 6 часов</h3>
+                                <p class="text-sm text-gray-500">Почти постоянно держу в руках</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button id="submit-btn" onclick="submitPoll()" disabled class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-3 px-4 rounded-lg transition duration-300 ease-in-out opacity-50 cursor-not-allowed disabled:opacity-50 disabled:cursor-not-allowed">
+                        Отправить ответ
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-6 text-center">
+            <!-- Direct link to results page -->
+            <a href="results.html" class="text-indigo-600 hover:text-indigo-800 font-medium">Посмотреть результаты опроса</a>
+        </div>
+    </div>
+
+    <!-- Include common logic first -->
+    <script src="poll_logic.js"></script>
+    <!-- Page-specific script -->
+    <script>
+        let selectedOption = null;
+        const submitBtn = document.getElementById('submit-btn');
+        const optionsList = document.getElementById('options-list');
+
+        function selectOption(option, element) {
+            // Prevent selection if already answered
+            if (localStorage.getItem(hasAnsweredKey)) {
+                console.log("Already answered, selection ignored.");
+                return;
+            }
+
+            selectedOption = option;
+            console.log("Selected option:", selectedOption);
+
+            // Visually update selection
+            optionsList.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            element.classList.add('selected');
+
+            // Enable submit button
+            submitBtn.disabled = false;
+            submitBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        }
+
+        function resetSelectionVisuals() {
+             selectedOption = null;
+             optionsList.querySelectorAll('.option-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+             submitBtn.disabled = true;
+             submitBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+
+        function submitPoll() {
+            console.log("submitPoll called. Selected:", selectedOption);
+
+            if (selectedOption === null) {
+                console.warn("Submit called with no option selected.");
+                alert("Пожалуйста, выберите вариант ответа."); // User feedback
+                return;
+            }
+
+            // Double-check if already answered (shouldn't be possible if UI is correct, but safe)
+             if (localStorage.getItem(hasAnsweredKey)) {
+                 console.log("Already answered check inside submitPoll. Redirecting.");
+                 // Redirect immediately if they somehow got here after answering
+                 window.location.replace('thankyou.html'); // Use replace to avoid history entry
+                 return;
+            }
+
+            console.log("Processing first time vote...");
+
+            // Load current data just before updating
+            loadPollData(); // Ensure pollData is up-to-date
+
+            // Update data (ensure property exists)
+             if (pollData.answers.hasOwnProperty(selectedOption)) {
+                pollData.answers[selectedOption]++;
+                // pollData.total++; // total is recalculated in savePollData
+                console.log("Poll data updated in memory:", JSON.stringify(pollData));
+            } else {
+                console.error("Invalid selectedOption:", selectedOption);
+                alert("Произошла ошибка при обработке вашего выбора.");
+                return;
+            }
+
+            // Save data
+            savePollData(); // Saves updated pollData to localStorage
+
+            // Mark as answered *after* successful update and save attempt
+            console.log("Setting 'hasAnswered' and 'userAnswer' in localStorage.");
+            localStorage.setItem(hasAnsweredKey, 'true');
+            localStorage.setItem(userAnswerKey, selectedOption.toString());
+
+            // Redirect to thank you page
+            console.log("Redirecting to thankyou.html");
+            window.location.href = 'thankyou.html'; // Navigate away
+        }
+
+        // --- Initialization on Page Load ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log("Poll page loaded.");
+             // Check if the user has already answered
+            if (localStorage.getItem(hasAnsweredKey) === 'true') {
+                console.log("User has already answered. Redirecting to thank you page...");
+                 // Use replace so the poll page isn't in the back button history
+                window.location.replace('thankyou.html');
+            } else {
+                 console.log("User has not answered. Initializing poll page.");
+                 // Ensure button is initially disabled
+                 resetSelectionVisuals();
+                 // Load existing poll data (though not strictly needed for display on this page)
+                 // loadPollData(); // Optional - already loaded if needed by submit
+            }
+            // Optional: Add listener for testing reset
+            // document.getElementById('reset-button-id')?.addEventListener('click', () => {
+            //     resetPollData();
+            //     window.location.reload();
+            // });
+        });
+    </script>
+</body>
+</html>
