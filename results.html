@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Результаты опроса</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+     <style>
+        /* Можно добавить .fade-in и @keyframes fadeIn сюда, если нужна анимация */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex items-center justify-center py-12 px-4">
+
+    <!-- Страница результатов -->
+    <div id="results-page" class="w-full max-w-4xl">
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden fade-in">
+            <div class="bg-indigo-600 py-6 px-8 flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-white flex items-center">
+                    <i class="fas fa-chart-pie mr-3"></i>
+                    Результаты опроса
+                </h1>
+                 <!-- Убрана кнопка закрытия, т.к. это отдельная страница -->
+            </div>
+
+            <div class="p-8">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">Сколько часов в день люди проводят со смартфоном?</h2>
+
+                <div class="grid md:grid-cols-2 gap-8">
+                    <!-- Диаграмма -->
+                    <div class="flex justify-center items-center min-h-[250px]">
+                        <canvas id="results-chart" class="max-w-full max-h-80"></canvas>
+                    </div>
+                    <!-- Статистика -->
+                    <div>
+                        <div class="bg-gray-50 rounded-lg p-6 h-full flex flex-col">
+                            <h3 class="font-semibold text-gray-700 mb-4 flex items-center text-lg">
+                                <i class="fas fa-info-circle mr-2 text-indigo-600"></i> Статистика ответов
+                            </h3>
+                            <div id="results-list" class="space-y-3 flex-grow">
+                                <!-- Результаты будут загружены сюда -->
+                                <p class="text-gray-500">Загрузка данных...</p>
+                            </div>
+                            <div class="mt-6 pt-4 border-t border-gray-200">
+                                <p class="text-sm text-gray-500">
+                                    <i class="fas fa-users mr-1"></i> Всего ответов: <span id="total-responses" class="font-medium text-gray-700">0</span>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8 pt-6 border-t border-gray-200 flex flex-col sm:flex-row justify-between items-center gap-4">
+                     <a href="index.html" class="text-indigo-600 hover:text-indigo-800 font-medium inline-flex items-center order-2 sm:order-1">
+                        <i class="fas fa-arrow-left mr-2"></i> Вернуться к опросу
+                    </a>
+                    <button onclick="resetSurvey()" class="text-red-600 hover:text-red-800 font-medium flex items-center order-1 sm:order-2 bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">
+                        <i class="fas fa-trash-alt mr-2"></i> Сбросить все результаты
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        let resultsChart = null; // Переменная для хранения экземпляра диаграммы
+
+        // --- Инициализация данных опроса (на случай прямого захода на страницу) ---
+         function initializeSurveyData() {
+             try {
+                 if (!localStorage.getItem('surveyResults')) {
+                    const initialData = {
+                        "Менее 1 часа": 0,
+                        "2-3 часа": 0,
+                        "3-4 часа": 0,
+                        "4-6 часов": 0,
+                        "Более 6 часов": 0
+                    };
+                    localStorage.setItem('surveyResults', JSON.stringify(initialData));
+                 }
+             } catch (e) {
+                 console.error("localStorage недоступен:", e);
+                 // Сообщить пользователю, что результаты могут быть не показаны
+                 document.getElementById('results-list').innerHTML = '<p class="text-red-500">Не удалось загрузить данные. Возможно, localStorage отключен.</p>';
+             }
+        }
+
+        // --- Загрузка и отображение результатов ---
+        function displayResults() {
+             let surveyResults = {};
+             try {
+                 const storedResults = localStorage.getItem('surveyResults');
+                 if (storedResults) {
+                     try {
+                          surveyResults = JSON.parse(storedResults);
+                          if (typeof surveyResults !== 'object' || surveyResults === null) {
+                              throw new Error("Неверный формат данных в localStorage");
+                          }
+                     } catch (parseError) {
+                         console.error("Ошибка парсинга surveyResults:", parseError);
+                         initializeSurveyData(); // Попытка восстановить структуру
+                         surveyResults = JSON.parse(localStorage.getItem('surveyResults') || '{}');
+                     }
+                 } else {
+                     initializeSurveyData(); // Инициализация, если данных нет
+                     surveyResults = JSON.parse(localStorage.getItem('surveyResults') || '{}');
+                 }
+             } catch (e) {
+                 console.error("Ошибка чтения из localStorage:", e);
+                 document.getElementById('results-list').innerHTML = '<p class="text-red-500">Не удалось загрузить данные. Возможно, localStorage отключен.</p>';
+                 document.getElementById('total-responses').textContent = 'N/A';
+                 return; // Прекращаем выполнение, если localStorage не работает
+             }
+
+
+            // Обновляем список результатов
+            const resultsList = document.getElementById('results-list');
+            resultsList.innerHTML = ''; // Очищаем перед заполнением
+
+            let totalResponses = 0;
+            const optionsOrder = ["Менее 1 часа", "2-3 часа", "3-4 часа", "4-6 часов", "Более 6 часов"]; // Для сортировки вывода
+
+            optionsOrder.forEach(option => {
+                 const count = surveyResults[option] || 0; // Получаем значение или 0, если ключа нет
+                 resultsList.innerHTML += `
+                    <div class="flex justify-between items-center text-sm">
+                        <span class="text-gray-600">${option}</span>
+                        <span class="font-semibold text-gray-800">${count}</span>
+                    </div>
+                `;
+                totalResponses += count;
+            });
+
+             // Обработка возможных "неизвестных" опций, если они как-то попали
+             Object.keys(surveyResults).forEach(option => {
+                 if (!optionsOrder.includes(option)) {
+                     const count = surveyResults[option];
+                      resultsList.innerHTML += `
+                        <div class="flex justify-between items-center text-sm text-orange-600">
+                            <span class="italic">${option} (нестандартный)</span>
+                            <span class="font-semibold">${count}</span>
+                        </div>
+                    `;
+                     totalResponses += count;
+                 }
+             });
+
+
+            if (totalResponses === 0) {
+                 resultsList.innerHTML = '<p class="text-gray-500 italic">Пока нет ни одного ответа.</p>';
+            }
+
+            document.getElementById('total-responses').textContent = totalResponses;
+
+            // Создаем диаграмму
+            createChart(surveyResults, optionsOrder);
+        }
+
+        // --- Создание диаграммы ---
+        function createChart(data, labelsOrder) {
+            const ctx = document.getElementById('results-chart').getContext('2d');
+
+            // Удаляем предыдущую диаграмму, если она существует
+            if (resultsChart) {
+                resultsChart.destroy();
+            }
+
+            const labels = labelsOrder; // Используем заданный порядок
+            const values = labels.map(label => data[label] || 0); // Получаем значения в нужном порядке
+
+            const backgroundColors = [
+                '#818cf8', // indigo-400
+                '#6366f1', // indigo-500
+                '#4f46e5', // indigo-600
+                '#4338ca', // indigo-700
+                '#3730a3'  // indigo-800
+            ];
+             const borderColors = [
+                 '#e0e7ff', // indigo-100
+                 '#c7d2fe', // indigo-200
+                 '#a5b4fc', // indigo-300
+                 '#818cf8', // indigo-400
+                 '#6366f1'  // indigo-500
+             ];
+
+
+            resultsChart = new Chart(ctx, {
+                type: 'pie', // или 'doughnut'
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Кол-во ответов',
+                        data: values,
+                        backgroundColor: backgroundColors,
+                        borderColor: borderColors, // Добавим рамки для лучшего разделения
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false, // Позволяет диаграмме лучше заполнять контейнер
+                    plugins: {
+                        legend: {
+                            position: 'bottom', // Легенда внизу лучше для мобильных
+                            labels: {
+                                padding: 20, // Отступ для легенды
+                                font: {
+                                     size: 12
+                                }
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const label = context.label || '';
+                                    const value = context.raw || 0;
+                                    const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                    const percentage = total === 0 ? 0 : Math.round((value / total) * 100);
+                                    return `${label}: ${value} (${percentage}%)`;
+                                }
+                            }
+                        },
+                        title: { // Можно добавить заголовок диаграммы
+                             display: false, // Пока отключим, т.к. есть общий заголовок
+                             text: 'Распределение ответов'
+                        }
+                    }
+                }
+            });
+        }
+
+        // --- Сброс результатов ---
+        function resetSurvey() {
+            if (confirm('Вы уверены, что хотите сбросить ВСЕ результаты опроса? Это действие нельзя отменить.')) {
+                 try {
+                    // Сбрасываем к начальным значениям
+                    initializeSurveyData(); // Эта функция уже содержит логику сброса
+                    // Перезагружаем данные на странице
+                    displayResults();
+                 } catch (e) {
+                     console.error("Ошибка при сбросе данных в localStorage:", e);
+                     alert("Не удалось сбросить результаты.");
+                 }
+            }
+        }
+
+        // --- Выполняем при загрузке страницы ---
+        document.addEventListener('DOMContentLoaded', () => {
+             initializeSurveyData(); // Убедимся, что структура есть
+             displayResults(); // Загружаем и отображаем данные
+        });
+
+    </script>
+</body>
+</html>
